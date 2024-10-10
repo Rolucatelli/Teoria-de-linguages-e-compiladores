@@ -1,7 +1,7 @@
 # Organizando os arquivos no makefile
 
 # Nome do projeto
-PROJ_NAME=calc
+PROJ_NAME=Compilador
 
 L_SOURCE=$(wildcard *.l)
 
@@ -44,19 +44,19 @@ lexico: $(L_SOURCE)
 
 sintatico: lexico $(Y_SOURCE)
 	@ echo 'Construindo analisador sintático'
-	bison -v -d $(Y_SOURCE) -o $(PROJ_NAME).c
+	bison -v -d $(Y_SOURCE) -o sintatico.c
 	@ echo 'Analisador sintático pronto!'
 
 comp: sintatico
 	@ echo 'Compilando o projeto'
-	gcc -o $(PROJ_NAME) $(PROJ_NAME).c lex.c
+	gcc -o $(PROJ_NAME) sintatico.c
 	@ echo 'Projeto compilado!'
 
 
 
 clean: 
 	@ echo 'Limpando arquivos'
-	rm -f $(PROJ_NAME) $(PROJ_NAME).c lex.c $(PROJ_NAME).output $(PROJ_NAME).h
+	rm -f $(PROJ_NAME) sintatico.c lex.c $(PROJ_NAME).output $(PROJ_NAME).h
 	@ echo 'Arquivos limpos!'
 
 

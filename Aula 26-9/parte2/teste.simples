@@ -1,0 +1,18 @@
+programa nome
+    inteiro a b c delta out
+inicio
+    leia a
+    leia b
+    leia c
+    delta <- (b * b) - (4 * a * c)
+    se delta < 0 entao
+        escreva F
+    senao 
+        se delta = 0 entao
+            out <- ((1 - b + 1) div (2 * a))
+            escreva out
+        senao 
+            escreva V
+        fimse
+    fimse
+fimprograma

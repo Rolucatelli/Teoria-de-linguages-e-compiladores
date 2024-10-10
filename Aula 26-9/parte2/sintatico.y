@@ -1,6 +1,10 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+
+#include "lex.c"
 %}
 
 
@@ -47,7 +51,7 @@
 
 %%
 
-programa T_MAIS
+programa 
     : cabecalho variaveis T_INICIO lista_comandos T_FIMPROG
     ;
 
@@ -74,7 +78,15 @@ lista_variaveis
     : lista_variaveis T_IDENTIF
     | T_IDENTIF
     ;
-T_MAIS
+
+lista_comandos
+    : lista_comandos comando
+    | comando
+    ;
+
+comando
+    : leitura
+    | escrita
     | repeticao
     | selecao
     | atribuicao
@@ -129,5 +141,6 @@ termo
 
 int main () {
     yyparse();
+    puts("Programa Compilado!");
     return 0;
 }
