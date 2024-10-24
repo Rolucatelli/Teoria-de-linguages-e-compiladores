@@ -67,7 +67,7 @@
 
 
 /* First part of user prologue.  */
-#line 1 "sintatico.y"
+#line 1 "./Compilador/sintatico.y"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,7 +76,7 @@
 
 #include "lex.c"
 
-#line 80 "sintatico.c"
+#line 80 "./Compilador/Objects/sintatico.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -1177,7 +1177,7 @@ yyreduce:
   switch (yyn)
     {
 
-#line 1181 "sintatico.c"
+#line 1181 "./Compilador/Objects/sintatico.c"
 
       default: break;
     }
@@ -1370,7 +1370,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 145 "sintatico.y"
+#line 145 "./Compilador/sintatico.y"
 
 
 int main () {

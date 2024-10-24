@@ -1,11 +1,14 @@
 # Organizando os arquivos no makefile
 
 # Nome do projeto
-PROJ_NAME="Programa Simples"
+PROJ_NAME=CompSimple
 
-L_SOURCE=$(wildcard *.l)
+PROG=helloWorld
 
-Y_SOURCE=$(wildcard *.y)
+LEXICO=$(wildcard ./Compilador/*.l)
+
+SINTATICO=$(wildcard ./Compilador/*.y)
+
 
 # # Nome do arquivo de Debug
 # DEBUG_NAME=escDebug
@@ -33,30 +36,30 @@ Y_SOURCE=$(wildcard *.y)
 #########################
 all: comp
 run: comp
-	./$(PROJ_NAME)
+	./$(PROJ_NAME) ./Codigos/$(PROG).simples
 
 
 
-lexico: $(L_SOURCE)
+lexico: $(LEXICO)
 	@ echo 'Construindo analisador léxico'
-	@ flex -o lex.c $(L_SOURCE)
+	flex -o ./Compilador/Objects/lex.c $(LEXICO)
 	@ echo 'Analisador léxico pronto!'
 
-sintatico: lexico $(Y_SOURCE)
+sintatico: lexico $(SINTATICO)
 	@ echo 'Construindo analisador sintático'
-	@ bison -v -d $(Y_SOURCE) -o sintatico.c
+	bison -v -d $(SINTATICO) -o ./Compilador/Objects/sintatico.c
 	@ echo 'Analisador sintático pronto!'
 
 comp: sintatico
 	@ echo 'Compilando o projeto'
-	@ gcc -o $(PROJ_NAME) sintatico.c
+	gcc -o $(PROJ_NAME) ./Compilador/Objects/sintatico.c
 	@ echo 'Projeto compilado!'
 
 
 
 clean: 
 	@ echo 'Limpando arquivos'
-	rm -f $(PROJ_NAME) sintatico.c lex.c $(PROJ_NAME).output $(PROJ_NAME).h
+	rm -f $(PROJ_NAME) ./Compilador/Objects/*
 	@ echo 'Arquivos limpos!'
 
 
