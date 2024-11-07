@@ -2,9 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
+#include "utils.c"
 #include "lex.c"
+
+int contaVar = 0;
+int tipo;
+
 %}
 
 
@@ -48,11 +51,27 @@
 
 %start programa
 
+%left T_MAIS T_MENOS
+%left T_VEZES T_DIV
+%left T_MAIOR T_MENOR T_IGUAL
+%left T_E T_OU
+
 
 %%
 
 programa 
-    : cabecalho variaveis T_INICIO lista_comandos T_FIMPROG
+    : cabecalho
+        { printf("\tINPP\n"); }
+     variaveis 
+        { 
+            printf("\tAMEM\t%d\n", contaVar); 
+            empilha(contaVar);
+        }
+        T_INICIO lista_comandos T_FIMPROG
+        {
+            int conta = desempilha(); 
+            printf("\tDMEM\t%d\n\tFIMP\n", conta); 
+        }
     ;
 
 cabecalho 
@@ -70,13 +89,26 @@ declaracao_variaveis
     ;
 
 tipo
-    : T_INTEIRO
-    | T_LOGICO
+    : T_INTEIRO { tipo = INT; }
+    | T_LOGICO  { tipo = LOG; }
     ;
 
 lista_variaveis
-    : lista_variaveis T_IDENTIF
-    | T_IDENTIF
+    : lista_variaveis T_IDENTIF 
+        { 
+            strcpy(elemTab.id, atomo);
+            elemTab.end = contaVar++;
+            elemTab.tip = tipo;
+            insereSimbolo(elemTab);
+        }
+    | T_IDENTIF                 
+        { 
+            strcpy(elemTab.id, atomo);
+            elemTab.end = contaVar++;
+            elemTab.tip = tipo;
+            insereSimbolo(elemTab);
+
+        }
     ;
 
 lista_comandos
@@ -94,11 +126,17 @@ comando
     ;
 
 leitura
-    : T_LEIA T_IDENTIF
+    : T_LEIA T_IDENTIF 
+        { 
+            int pos = buscaSimbolo(atomo);
+            printf("\tLEIA\n"); 
+            printf("\tARZG\t%d\n", tabSimb[pos].end); 
+        }
     ;
 
 escrita
     : T_ESCREVA expressao
+        { printf("\tESCR\n"); }
     ;
 
 repeticao
@@ -118,24 +156,28 @@ atribuicao
     ;
 
 expressao
-    : expressao T_MAIS expressao
-    | expressao T_MENOS expressao
-    | expressao T_VEZES expressao
-    | expressao T_DIV expressao
-    | expressao T_MAIOR expressao
-    | expressao T_MENOR expressao
-    | expressao T_E expressao
-    | expressao T_OU expressao
-    | expressao T_IGUAL expressao
+    : expressao T_MAIS expressao    { printf("\tSOMA\n"); }
+    | expressao T_MENOS expressao   { printf("\tSUBT\n"); }
+    | expressao T_VEZES expressao   { printf("\tMULT\n"); }
+    | expressao T_DIV expressao     { printf("\tDIVI\n"); }
+    | expressao T_MAIOR expressao   { printf("\tCMMA\n"); }
+    | expressao T_MENOR expressao   { printf("\tCMME\n"); }
+    | expressao T_E expressao       { printf("\tCMIG\n"); }
+    | expressao T_OU expressao      { printf("\tCONJ\n"); }
+    | expressao T_IGUAL expressao   { printf("\tDISJ\n"); }
     | termo
     ;
 
 termo
-    : T_NUMERO
-    | T_IDENTIF
-    | T_V
-    | T_F
-    | T_NAO termo
+    : T_NUMERO      { printf("\tCRCT\t%s\n", atomo); }  //ta com erro aqui
+    | T_IDENTIF     
+        { 
+            int pos = buscaSimbolo(atomo);
+            printf("\tCRVG\t%d\n", tabSimb[pos].end); 
+        }
+    | T_V           { printf("\tCRVG\t1\n"); }
+    | T_F           { printf("\tCRVG\t0\n"); }
+    | T_NAO termo   { printf("\tNEGA\n"); }
     | T_ABRE expressao T_FECHA
     ;
 
@@ -144,8 +186,7 @@ termo
 
 %%
 
-int main () {
+int main (int argc, char *argv[]) {
     yyparse();
-    puts("Programa Compilado!");
     return 0;
 }

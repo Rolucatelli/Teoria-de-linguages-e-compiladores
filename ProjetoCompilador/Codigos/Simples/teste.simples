@@ -1,0 +1,7 @@
+programa Somador
+    inteiro a b
+inicio
+    leia a
+    leia b
+    escreva 10 * (a + b)
+fimprograma

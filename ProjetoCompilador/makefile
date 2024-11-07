@@ -3,7 +3,7 @@
 # Nome do projeto
 PROJ_NAME=CompSimple
 
-PROG=helloWorld
+PROG=teste
 
 LEXICO=$(wildcard ./Compilador/*.l)
 
@@ -36,24 +36,33 @@ SINTATICO=$(wildcard ./Compilador/*.y)
 #########################
 all: comp
 run: comp
-	./$(PROJ_NAME) ./Codigos/$(PROG).simples
+	./$(PROJ_NAME) < ./Codigos/Simples/$(PROG).simples > ./Codigos/Mvs/$(PROG).mvs
+	@ cat ./Codigos/Mvs/$(PROG).mvs
+	@ gcc -o ./Compilador/mvs ./Compilador/Objects/mvs.c
+	@ ./Compilador/mvs ./Codigos/Mvs/$(PROG).mvs
 
 
 
 lexico: $(LEXICO)
+	@ echo ' '
 	@ echo 'Construindo analisador léxico'
-	flex -o ./Compilador/Objects/lex.c $(LEXICO)
+	@ flex -o ./Compilador/Objects/lex.c $(LEXICO)
 	@ echo 'Analisador léxico pronto!'
+	@ echo ' '
 
 sintatico: lexico $(SINTATICO)
+	@ echo ' '
 	@ echo 'Construindo analisador sintático'
-	bison -v -d $(SINTATICO) -o ./Compilador/Objects/sintatico.c
+	@ bison -v -d $(SINTATICO) -o ./Compilador/Objects/sintatico.c
 	@ echo 'Analisador sintático pronto!'
+	@ echo ' '
 
 comp: sintatico
+	@ echo ' '
 	@ echo 'Compilando o projeto'
-	gcc -o $(PROJ_NAME) ./Compilador/Objects/sintatico.c
+	@ gcc -o $(PROJ_NAME) ./Compilador/Objects/sintatico.c
 	@ echo 'Projeto compilado!'
+	@ echo ' '
 
 
 
