@@ -6,6 +6,7 @@
 #include "lex.c"
 
 int contaVar = 0;
+int rotulo = 0;
 int tipo;
 
 %}
@@ -61,16 +62,16 @@ int tipo;
 
 programa 
     : cabecalho
-        { printf("\tINPP\n"); }
+        { fprintf(yyout, "\tINPP\n"); }
      variaveis 
         { 
-            printf("\tAMEM\t%d\n", contaVar); 
+            fprintf(yyout, "\tAMEM\t%d\n", contaVar); 
             empilha(contaVar);
         }
         T_INICIO lista_comandos T_FIMPROG
         {
             int conta = desempilha(); 
-            printf("\tDMEM\t%d\n\tFIMP\n", conta); 
+            fprintf(yyout, "\tDMEM\t%d\n\tFIMP\n", conta); 
         }
     ;
 
@@ -114,6 +115,7 @@ lista_variaveis
 lista_comandos
     : lista_comandos comando
     | comando
+    | /* nada */
     ;
 
 comando
@@ -122,62 +124,162 @@ comando
     | repeticao
     | selecao
     | atribuicao
-    | repeticao_dowhile
     ;
 
 leitura
     : T_LEIA T_IDENTIF 
         { 
             int pos = buscaSimbolo(atomo);
-            printf("\tLEIA\n"); 
-            printf("\tARZG\t%d\n", tabSimb[pos].end); 
+            fprintf(yyout, "\tLEIA\n"); 
+            fprintf(yyout, "\tARZG\t%d\n", tabSimb[pos].end); 
         }
     ;
 
 escrita
     : T_ESCREVA expressao
-        { printf("\tESCR\n"); }
+    { 
+        int tipo = desempilha();
+        fprintf(yyout, "\tESCR\n"); }
     ;
 
 repeticao
-    : T_ENQUANTO expressao T_FACA lista_comandos T_FIMEQNTO
-    ;
-
-repeticao_dowhile
-    : T_FACA lista_comandos T_ENQUANTO expressao T_FIMEQNTO
+    : T_ENQUANTO 
+    {
+        fprintf(yyout, "L%d\tNADA\n", ++rotulo);
+        empilha(rotulo);
+    }
+     expressao T_FACA 
+    {
+        int tipo = desempilha();
+        if(tipo != LOG)
+            yyerror("Incompatibilidade de tipos na repeticao");
+        fprintf(yyout, "\tDSVF\tL%d\n", ++rotulo);
+        empilha(rotulo);
+    }
+     lista_comandos T_FIMEQNTO
+    {
+            int y = desempilha();
+            int x = desempilha();
+            fprintf(yyout, "\tDSVS\tL%d\nL%d\tNADA\n", x, y);
+    }
     ;
 
 selecao
-    : T_SE expressao T_ENTAO lista_comandos T_SENAO lista_comandos T_FIMSE
+    : T_SE expressao T_ENTAO 
+    {
+        int tipo = desempilha();
+        if(tipo != LOG)
+            yyerror("Incompatibilidade de tipos na selecao");
+        fprintf(yyout, "\tDSVF\tL%d\n", ++rotulo);
+        empilha(rotulo);
+    } lista_comandos T_SENAO 
+    {
+        int x = desempilha();
+        fprintf(yyout, "\tDSVS\tL%d\nL%d\tNADA\n", ++rotulo, x);
+        empilha(rotulo);
+    }
+    lista_comandos T_FIMSE
+    {
+        int x = desempilha();
+        fprintf(yyout, "L%d\tNADA\n", x);
+    }
     ;
 
 atribuicao
-    : T_IDENTIF T_ATRIB expressao
+    : T_IDENTIF
+        { 
+            int pos = buscaSimbolo(atomo);
+            empilha(pos);
+        }
+         T_ATRIB expressao{
+            int tipo = desempilha();
+            int pos = desempilha();
+            if(tipo != tabSimb[pos].tip)
+                yyerror("Incompatibilidade de tipos");
+            fprintf(yyout, "\tARZG\t%d\n", tabSimb[pos].end);
+         }
     ;
 
 expressao
-    : expressao T_MAIS expressao    { printf("\tSOMA\n"); }
-    | expressao T_MENOS expressao   { printf("\tSUBT\n"); }
-    | expressao T_VEZES expressao   { printf("\tMULT\n"); }
-    | expressao T_DIV expressao     { printf("\tDIVI\n"); }
-    | expressao T_MAIOR expressao   { printf("\tCMMA\n"); }
-    | expressao T_MENOR expressao   { printf("\tCMME\n"); }
-    | expressao T_E expressao       { printf("\tCMIG\n"); }
-    | expressao T_OU expressao      { printf("\tCONJ\n"); }
-    | expressao T_IGUAL expressao   { printf("\tDISJ\n"); }
+    : expressao T_MAIS expressao    
+    {
+        testaTipo(INT, INT, INT); 
+        fprintf(yyout, "\tSOMA\n"); 
+    }
+    | expressao T_MENOS expressao   
+    {
+        testaTipo(INT, INT, INT); 
+        fprintf(yyout, "\tSUBT\n"); 
+    }
+    | expressao T_VEZES expressao   
+    {
+        testaTipo(INT, INT, INT); 
+        fprintf(yyout, "\tMULT\n"); 
+    }
+    | expressao T_DIV expressao     
+    {
+        testaTipo(INT, INT, INT); 
+        fprintf(yyout, "\tDIVI\n"); 
+    }
+    | expressao T_MAIOR expressao   
+    {
+        testaTipo(INT, INT, LOG); 
+        fprintf(yyout, "\tCMMA\n"); 
+    }
+    | expressao T_MENOR expressao   
+    {
+        testaTipo(INT, INT, LOG); 
+        fprintf(yyout, "\tCMME\n"); 
+    }
+    | expressao T_IGUAL expressao   
+    {
+        testaTipo(INT, INT, LOG); 
+        fprintf(yyout, "\tCMIG\n"); 
+    }
+    | expressao T_E expressao       
+    {
+        testaTipo(LOG, LOG, LOG); 
+        fprintf(yyout, "\tCONJ\n"); 
+    }
+    | expressao T_OU expressao      
+    {
+        testaTipo(LOG, LOG, LOG); 
+        fprintf(yyout, "\tDISJ\n"); 
+    }
     | termo
     ;
 
 termo
-    : T_NUMERO      { printf("\tCRCT\t%s\n", atomo); }  //ta com erro aqui
+    : T_NUMERO      
+    { 
+        fprintf(yyout, "\tCRCT\t%s\n", atomo); 
+        empilha(INT);
+
+    }
     | T_IDENTIF     
         { 
             int pos = buscaSimbolo(atomo);
-            printf("\tCRVG\t%d\n", tabSimb[pos].end); 
+            fprintf(yyout, "\tCRVG\t%d\n", tabSimb[pos].end); 
+            empilha(tabSimb[pos].tip);
         }
-    | T_V           { printf("\tCRVG\t1\n"); }
-    | T_F           { printf("\tCRVG\t0\n"); }
-    | T_NAO termo   { printf("\tNEGA\n"); }
+    | T_V           
+    { 
+        fprintf(yyout, "\tCRVG\t1\n"); 
+        empilha(LOG);
+    }
+    | T_F           
+    {
+        fprintf(yyout, "\tCRVG\t0\n");
+        empilha(LOG);
+    }
+    | T_NAO termo   
+    {
+        int x = desempilha();
+        if(x != LOG)
+            yyerror("Incompatibilidade de tipos");
+        fprintf(yyout, "\tNEGA\n");
+        empilha(LOG);
+    }
     | T_ABRE expressao T_FECHA
     ;
 
@@ -187,6 +289,28 @@ termo
 %%
 
 int main (int argc, char *argv[]) {
+    char nameIn[100], nameOut[30], *p;
+    if(argc < 2) {
+        printf("Use:\n\t%s <arquivo>[.simples]\n\n", argv[0]);
+        return 10;
+    }
+    p = strstr(argv[1], ".simples");
+    if(p) *p = '\0';
+    
+    // Definindo o caminho dos arquivos de entrada e saída
+
+
+
+    strcpy(nameIn, argv[1]);
+    strcpy(nameOut, argv[1]);
+    strcat(nameIn, ".simples");
+    strcat(nameOut, ".mvs");
+    yyin = fopen(nameIn, "r");
+    yyout = fopen(nameOut, "w");
+    if (!yyin) {
+        perror("Erro ao abrir o arquivo");
+        return 1;
+    }
     yyparse();
     return 0;
 }

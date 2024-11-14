@@ -3,7 +3,7 @@
 # Nome do projeto
 PROJ_NAME=CompSimple
 
-PROG=teste
+PROG=enquanto
 
 LEXICO=$(wildcard ./Compilador/*.l)
 
@@ -36,7 +36,7 @@ SINTATICO=$(wildcard ./Compilador/*.y)
 #########################
 all: comp
 run: comp
-	./$(PROJ_NAME) < ./Codigos/Simples/$(PROG).simples > ./Codigos/Mvs/$(PROG).mvs
+	./$(PROJ_NAME) ./Codigos/Simples/$(PROG)
 	@ cat ./Codigos/Mvs/$(PROG).mvs
 	@ gcc -o ./Compilador/mvs ./Compilador/Objects/mvs.c
 	@ ./Compilador/mvs ./Codigos/Mvs/$(PROG).mvs
